@@ -3,6 +3,7 @@
 namespace Pim\Bundle\DataGridBundle\Entity;
 
 use Pim\Bundle\UserBundle\Entity\UserInterface;
+use Pim\Component\Catalog\Model\ReferableInterface;
 
 /**
  * Datagrid view entity
@@ -11,7 +12,7 @@ use Pim\Bundle\UserBundle\Entity\UserInterface;
  * @copyright 2014 Akeneo SAS (http://www.akeneo.com)
  * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class DatagridView
+class DatagridView implements ReferableInterface
 {
     /** @staticvar string */
     const TYPE_PUBLIC = 'public';
@@ -223,5 +224,13 @@ class DatagridView
     public function getFilters()
     {
         return $this->filters;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getReference()
+    {
+        return $this->label;
     }
 }
