@@ -51,6 +51,7 @@ class BaseSaver implements SaverInterface, BulkSaverInterface
         $this->validateObject($object);
 
         $options['unitary'] = true;
+        $options['is_new'] = null === $object->getId();
 
         $this->eventDispatcher->dispatch(StorageEvents::PRE_SAVE, new GenericEvent($object, $options));
 
@@ -74,9 +75,14 @@ class BaseSaver implements SaverInterface, BulkSaverInterface
 
         $this->eventDispatcher->dispatch(StorageEvents::PRE_SAVE_ALL, new GenericEvent($objects, $options));
 
-        foreach ($objects as $object) {
+        $areObjectsNew = array_map(function ($object) {
+            return null === $object->getId();
+        }, $objects);
+
+        foreach ($objects as $i => $object) {
             $this->validateObject($object);
 
+            $options['is_new'] = $areObjectsNew[$i];
             $this->eventDispatcher->dispatch(StorageEvents::PRE_SAVE, new GenericEvent($object, $options));
 
             $this->objectManager->persist($object);
@@ -84,7 +90,8 @@ class BaseSaver implements SaverInterface, BulkSaverInterface
 
         $this->objectManager->flush();
 
-        foreach ($objects as $object) {
+        foreach ($objects as $i => $object) {
+            $options['is_new'] = $areObjectsNew[$i];
             $this->eventDispatcher->dispatch(StorageEvents::POST_SAVE, new GenericEvent($object, $options));
         }
 
