@@ -51,7 +51,7 @@ class NotEmptyVariantAxesValidator extends ConstraintValidator
             if (null === $value || empty($value->getData())) {
                 $this->context->buildViolation(NotEmptyVariantAxes::EMPTY_AXIS_VALUE, [
                     '%attribute%' => $axis->getCode()
-                ])->addViolation();
+                ])->atPath($constraint->propertyPath)->addViolation();
             }
         }
     }

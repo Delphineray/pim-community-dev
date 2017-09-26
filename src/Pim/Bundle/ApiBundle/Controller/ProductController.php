@@ -114,6 +114,9 @@ class ProductController
     /** @var ProductQueryBuilderFactoryInterface */
     protected $fromSizePqbFactory;
 
+    /** @var ProductBuilderInterface */
+    protected $variantProductBuilder;
+
     /**
      * @param ProductQueryBuilderFactoryInterface   $searchAfterPqbFactory
      * @param NormalizerInterface                   $normalizer
@@ -134,6 +137,7 @@ class ProductController
      * @param StreamResourceResponse                $partialUpdateStreamResource
      * @param PrimaryKeyEncrypter                   $primaryKeyEncrypter
      * @param ProductQueryBuilderFactoryInterface   $fromSizePqbFactory
+     * @param ProductBuilderInterface               $variantProductBuilder
      * @param array                                 $apiConfiguration
      */
     public function __construct(
@@ -156,6 +160,7 @@ class ProductController
         StreamResourceResponse $partialUpdateStreamResource,
         PrimaryKeyEncrypter $primaryKeyEncrypter,
         ProductQueryBuilderFactoryInterface $fromSizePqbFactory,
+        ProductBuilderInterface $variantProductBuilder,
         array $apiConfiguration
     ) {
         $this->searchAfterPqbFactory = $searchAfterPqbFactory;
@@ -177,6 +182,7 @@ class ProductController
         $this->partialUpdateStreamResource = $partialUpdateStreamResource;
         $this->primaryKeyEncrypter = $primaryKeyEncrypter;
         $this->fromSizePqbFactory = $fromSizePqbFactory;
+        $this->variantProductBuilder = $variantProductBuilder;
         $this->apiConfiguration = $apiConfiguration;
     }
 
@@ -271,7 +277,11 @@ class ProductController
 
         $data = $this->populateIdentifierProductValue($data);
 
-        $product = $this->productBuilder->createProduct();
+        if (isset($data['parent'])) {
+            $product = $this->variantProductBuilder->createProduct($data['identifier']);
+        } else {
+            $product = $this->productBuilder->createProduct();
+        }
 
         $this->updateProduct($product, $data, 'post_products');
         $this->validateProduct($product);
@@ -603,9 +613,9 @@ class ProductController
      * @param array                 $queryParameters
      * @param array                 $normalizerOptions
      *
-     * @throws UnprocessableEntityHttpException
-     *
      * @return array
+     *
+     * @throws ServerErrorResponseException
      */
     protected function searchAfterOffset(
         Request $request,
